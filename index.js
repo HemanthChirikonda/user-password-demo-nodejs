@@ -14,7 +14,9 @@ app.use(cors({
 app.use(bodyParser.json());
 const port=3030;
 
-
+app.get("/",(req,res)=>{
+res.send("hello")
+})
 
 
 app.post("/register", async (req,res)=>{
