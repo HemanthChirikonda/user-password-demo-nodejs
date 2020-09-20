@@ -31,7 +31,7 @@ if(email){
     let salt= await bcrypt.genSalt(10);
     let hash= await bcrypt.hash(req.body.Password,salt);
     req.body.Password= hash;
-    console.log(hash);
+  //  console.log(hash);
     let user = await db.collection('users').insertOne({
             "Address": req.body.Address,
             "Address2": req.body.Address2,
