@@ -37,7 +37,7 @@ if(verifyResult){
 }
 
 app.use(cors({
-    origin:"http://127.0.0.1:5500"
+    origin:"https://suspicious-brattain-5c36ee.netlify.app"
 }));
 app.use(bodyParser.json());
 const port=3030;
@@ -159,20 +159,22 @@ app.post("/dashboard", authenticate, async (req,res)=>{
 })
 
 app.get("/:code", async (req,res)=>{
-    //console.log(hello)
+   
     try {
-        let variable= req.params.code;
-        let client = await mongodbClint.connect(url);
+        let short_url= `${req.params.code}`
+        //let variable= req.params.code;
+        let client = await mongodbClint.connect(url,{useUnifiedTopology:true},);
         let db= client.db('trimurlapp');
         //console.log(shortUrl);
-        let shorturl= await db.collection('shorturls').findOne({short: variable});
-        console.log(shorturl);
+        let shorturl= await db.collection('shorturls').findOne({short:short_url});
+        console.log(short_url);
         if(shorturl=== null) return res.status(404);
         shorturl.clicks++;
-        console.log(shorturl)
+        console.log(shorturl);
+        await db.collection('shorturls').findOneAndUpdate({short:short_url},{$set:{clicks:shorturl.clicks}})
         res.redirect(shorturl.full);
         client.close();
-       res.json(shorturl)
+       //res.json(shorturl)
     } catch (error) {
         console.log(error)
         res.json(error)
