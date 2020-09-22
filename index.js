@@ -195,7 +195,7 @@ app.post("/gencode", async (req,res)=>{
     let user= await db.collection('users').findOne({'Email':req.body.Email});
     if(user){
         console.log(user)
-      if(req.body.Dob === "19/08/1997"){
+      if(req.body.Dob === user.Dob){
           console.log((req.body.Dob === '19/08/1997'))
         let code=  Math.ceil(Math.random()*(999999-100000)+100000);
         console.log(code);
