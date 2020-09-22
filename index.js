@@ -39,7 +39,8 @@ if(verifyResult){
 // async..await is not allowed in global scope, must use a wrapper
 
 app.use(cors({
-    origin:"https://suspicious-brattain-5c36ee.netlify.app"
+    //origin:"https://suspicious-brattain-5c36ee.netlify.app"
+    origin:"*"
 
 }));
 app.use(bodyParser.json());
