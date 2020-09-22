@@ -53,7 +53,7 @@ res.send("hello")
 
 app.post("/register", async (req,res)=>{
     try {
-//console.log(req.body);
+////console.log(req.body);
 let client = await mongodbClint.connect(url);
 let db= client.db('trimurlapp');
 let email= await db.collection('users').findOne({'Email':req.body.Email});
@@ -65,7 +65,7 @@ if(email){
     let salt= await bcrypt.genSalt(10);
     let hash= await bcrypt.hash(req.body.Password,salt);
     req.body.Password= hash;
-  //  console.log(hash);
+  //  //console.log(hash);
     let user = await db.collection('users').insertOne({
                "Email": req.body.Email,
                "Dob":req.body.Dob,
@@ -101,7 +101,7 @@ app.post("/login",async (req,res)=>{
           var result= await bcrypt.compare(req.body.Password,user.Password);
           if(result){
               let token= jwt.sign({Email:user.Email},"mnbvcxsertyuiolknb");
-              //console.log(token);
+              ////console.log(token);
               res.json({
                   "message":"Allow",
                   token
@@ -169,18 +169,18 @@ app.get("/:code", async (req,res)=>{
         //let variable= req.params.code;
         let client = await mongodbClint.connect(url,{useUnifiedTopology:true},);
         let db= client.db('trimurlapp');
-        //console.log(shortUrl);
+        ////console.log(shortUrl);
         let shorturl= await db.collection('shorturls').findOne({short:short_url});
-        console.log(short_url);
+        ////console.log(short_url);
         if(shorturl=== null) return res.status(404);
         shorturl.clicks++;
-        console.log(shorturl);
+       // //console.log(shorturl);
         await db.collection('shorturls').findOneAndUpdate({short:short_url},{$set:{clicks:shorturl.clicks}})
         res.redirect(shorturl.full);
         client.close();
        //res.json(shorturl)
     } catch (error) {
-        console.log(error)
+        //console.log(error)
         res.json(error)
     }
 })
@@ -190,19 +190,19 @@ app.get("/:code", async (req,res)=>{
 
 app.post("/gencode", async (req,res)=>{
  try {
-     console.log("inside")
+     //console.log("inside")
      let client = await mongodbClint.connect(url);
     let db= client.db('trimurlapp');
     let user= await db.collection('users').findOne({'Email':req.body.Email});
     if(user){
-        console.log(user)
+        //console.log(user)
       if(req.body.Dob === user.Dob){
-          console.log((req.body.Dob === '19/08/1997'))
+          //console.log((req.body.Dob === '19/08/1997'))
         let code=  Math.ceil(Math.random()*(999999-100000)+100000);
-        console.log(code);
+        //console.log(code);
         let salt= await bcrypt.genSalt(10);
         let hash= await bcrypt.hash(`${code}`,salt);
-        console.log(hash)
+        //console.log(hash)
       let user2= await db.collection('users').findOneAndUpdate({'Email':req.body.Email},{$set:{"Password":hash}});
         client.close();
           // create reusable transporter object using the default SMTP transport
@@ -259,7 +259,7 @@ app.post("/verify", async (req,res)=>{
           var result= await bcrypt.compare(req.body.Password,user.Password);
           if(result){
               let token= jwt.sign({Email:user.Email},"mnbvcxsertyuiolknb");
-              //console.log(token);
+              ////console.log(token);
               res.json({
                   "message":"Allow",
                   token
@@ -291,7 +291,7 @@ app.post("/newpassword",  async (req,res)=>{
     try {
         let salt= await bcrypt.genSalt(10);
         let hash= await bcrypt.hash(`${req.body.Password}`,salt);
-        console.log(hash);
+        //console.log(hash);
         let client = await mongodbClint.connect(url);
         let db= client.db('trimurlapp');
      await db.collection('users',{ useUnifiedTopology: true }).findOneAndUpdate({'Email':req.body.Email},{$set:{"Password":hash}});
@@ -310,5 +310,5 @@ app.post("/newpassword",  async (req,res)=>{
 
 
 app.listen(process.env.PORT || 5000,()=>{
-        console.log('server started')
+        //console.log('server started')
     })
