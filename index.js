@@ -32,12 +32,15 @@ if(verifyResult){
           "message":"no token present"
       })
   }
-  
-  
 }
+"use strict";
+
+
+// async..await is not allowed in global scope, must use a wrapper
 
 app.use(cors({
     origin:"https://suspicious-brattain-5c36ee.netlify.app"
+
 }));
 app.use(bodyParser.json());
 const port=3030;
@@ -186,16 +189,45 @@ app.get("/:code", async (req,res)=>{
 
 app.post("/gencode", async (req,res)=>{
  try {
+     console.log("inside")
      let client = await mongodbClint.connect(url);
     let db= client.db('trimurlapp');
     let user= await db.collection('users').findOne({'Email':req.body.Email});
     if(user){
-        let result =  (req.body.Dob === user.Dob);
-      if(result){
-        let code= Math.ceil(Math.random()*(999999-100000)+100000);
-        let salt= bcrypt.genSalt(10);
-        let hash= bcrypt.hash(code,salt);
-    await db.collection('users').findOneAndUpdate({"Email":req.body.Email},{$set:{"Password":hash}});
+        console.log(user)
+      if(req.body.Dob === "19/08/1997"){
+          console.log((req.body.Dob === '19/08/1997'))
+        let code=  Math.ceil(Math.random()*(999999-100000)+100000);
+        console.log(code);
+        let salt= await bcrypt.genSalt(10);
+        let hash= await bcrypt.hash(`${code}`,salt);
+        console.log(hash)
+      let user2= await db.collection('users').findOneAndUpdate({'Email':req.body.Email},{$set:{"Password":hash}});
+        client.close();
+          // create reusable transporter object using the default SMTP transport
+          let transporter = nodemailer.createTransport({
+              service: "gmail", // true for 465, false for other ports
+              auth: {
+                  user: "test.shorturlapp@gmail.com", // generated ethereal user
+                  pass: "11409196Hs!", // generated ethereal password
+              },
+          });
+
+          // send mail with defined transport object
+          let info = await transporter.sendMail({
+              from: "test.shorturlapp@gmail.com", /// sender address
+              to: `${user.Email}`, // list of receivers
+              subject: `shorturlapp verification code ${code}`, // Subject line
+              text: `Dear user,
+                Your verification code is ${code}.
+              `, // plain text body
+              //html: "<b>Hello world?</b>", // html body
+          });
+        
+          res.json({
+            "message":"Email sent"
+        })
+
       }else{
         res.json({
             "message":"invalid details"
@@ -207,43 +239,6 @@ app.post("/gencode", async (req,res)=>{
             "message":"invalid User"
         })
     }
-    client.close();
-    res.json({
-        "message":"Code genareted"
-    })
- } catch (error) {
-     res.json({
-         "message":error
-     })
- }
-})
-app.post("/gencode", async (req,res)=>{
- try {
-     let client = await mongodbClint.connect(url);
-    let db= client.db('trimurlapp');
-    let user= await db.collection('users').findOne({'Email':req.body.Email});
-    if(user){
-        let result =  (req.body.Dob === user.Dob);
-      if(result){
-        let code= Math.ceil(Math.random()*(999999-100000)+100000);
-        let salt= bcrypt.genSalt(10);
-        let hash= bcrypt.hash(code,salt);
-    await db.collection('users').findOneAndUpdate({"Email":req.body.Email},{$set:{"Password":hash}});
-      }else{
-        res.json({
-            "message":"invalid details"
-        })
-      }
-
-    }else{
-        res.json({
-            "message":"invalid User"
-        })
-    }
-    client.close();
-    res.json({
-        "message":"Code genareted"
-    })
  } catch (error) {
      res.json({
          "message":error
@@ -254,26 +249,65 @@ app.post("/gencode", async (req,res)=>{
 
 
 
-
-
-app.get("/users", async (req,res)=>{
+app.post("/verify", async (req,res)=>{
     try {
         let client = await mongodbClint.connect(url);
         let db= client.db('trimurlapp');
-       let users= await db.collection('users').find().toArray();
-        client.close();
-       // console.log(student)
-        res.json({"data":users,
-        "message":"got the data"})
+        let user= await db.collection('users').findOne({'Email':req.body.Email});
+        if(user){
+          var result= await bcrypt.compare(req.body.Password,user.Password);
+          if(result){
+              let token= jwt.sign({Email:user.Email},"mnbvcxsertyuiolknb");
+              //console.log(token);
+              res.json({
+                  "message":"Allow",
+                  token
+              });
+          }else{
+             res.json({
+                 "message":" Password or email is incorrect"
+             })
+          }
+        
+        }else{
+           res.json({
+               "message":"invalid user"
+           });
+         
+        }
+        
+        
     } catch (error) {
-      res.json({
-          "message":error
-      })
+        res.json({
+            "message":error
+        })
     }
-    })
+
+});
+
+
+app.post("/newpassword",  async (req,res)=>{
+    try {
+        let salt= await bcrypt.genSalt(10);
+        let hash= await bcrypt.hash(`${req.body.Password}`,salt);
+        console.log(hash);
+        let client = await mongodbClint.connect(url);
+        let db= client.db('trimurlapp');
+     await db.collection('users',{ useUnifiedTopology: true }).findOneAndUpdate({'Email':req.body.Email},{$set:{"Password":hash}});
+        client.close();
+        res.json({
+            "message":"Password updated"
+        })
+    } catch (error) {
+        res.json({
+            "message":error
+        })
+    }
+
+});
 
 
 
-    app.listen(process.env.PORT || 5000,()=>{
+app.listen(process.env.PORT || 5000,()=>{
         console.log('server started')
     })
